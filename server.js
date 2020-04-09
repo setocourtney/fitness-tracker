@@ -1,22 +1,21 @@
 const express = require("express");
-const mongojs = require("mongojs");
-const logger = require("morgan");  // log server requests
+const logger = require("morgan");
+const mongoose = require("mongoose");
 
-// set up mongo db
-const databaseUrl = "fitnessTrackerDB";
-const collections = ["workouts"];
-const db = mongojs(databaseUrl, collections);
+const PORT = process.env.PORT || 3000;
+
+const Workout = require("./workoutModel.js");
 
 const app = express();
 
 app.use(logger("dev"));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"));
 
-db.on("error", error => {
-    console.log("Database Error:", error);
-});
+
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/custommethods", { useNewUrlParser: true });
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname + "./public/index.html"));
@@ -24,7 +23,7 @@ app.get("/", (req, res) => {
 
 // get all workouts
 app.get("/all", (req, res) => {
-    db.workouts.find({}, (err, data) => {
+    Workouts.find({}, (err, data) => {
         if (err) {
             res.send(err);
         }
@@ -34,7 +33,7 @@ app.get("/all", (req, res) => {
 
 // add workout to list
 app.submit("/", (req, res) => {
-    db.workouts.insert(req.body, (err, data) => {
+    Workouts.insert(req.body, (err, data) => {
         if (err) {
             res.send(err);
         }
@@ -44,7 +43,7 @@ app.submit("/", (req, res) => {
 
 // find workout by id
 app.get("/find/:id", (req, res) => {
-    db.workouts.findOne({
+    Workouts.findOne({
         _id: mongojs.ObjectId(req.params.id)
     }, (err, data) => {
         if (err) {
@@ -56,7 +55,7 @@ app.get("/find/:id", (req, res) => {
 
 // modify existing workout list
 app.put("/update/:id", (req, res) => {
-    db.workouts.update({
+    Workouts.update({
         _id: mongojs.ObjectId(req.params.id)
     }, {
         $set: {
@@ -74,7 +73,7 @@ app.put("/update/:id", (req, res) => {
 
 // clear workout by id
 app.delete("/delete/:id", (req, res) => {
-    db.workouts.remove({
+    Workouts.remove({
         _id: mongojs.ObjectId(req.params.id)
     }, (err, data) => {
         if (err) {
@@ -86,7 +85,7 @@ app.delete("/delete/:id", (req, res) => {
 
 // clear all workouts
 app.delete("/clear", (req, res) => {
-    db.workouts.remove({}, (err, data) => {
+    Workouts.remove({}, (err, data) => {
         if (err) {
             res.send(err);
         }
@@ -94,6 +93,6 @@ app.delete("/clear", (req, res) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log("App running on port 3000!");
-  });s
+app.listen(PORT, () => {
+    console.log(`App running on port ${PORT}`);
+});s
