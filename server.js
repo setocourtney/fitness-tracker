@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 const PORT = process.env.PORT || 3000;
 
-const db = require("./models");
+const db = require("./models/Workout");
 const seeders = require("./seeders/seed.js");
 
 const app = express();
@@ -17,6 +17,18 @@ app.use(express.static("public"));
 
 
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/custommethods", { useNewUrlParser: true });
+
+
+// find all workouts
+app.get("/api/workouts", (req, res) => {
+    db.Workout.find({}, (err, data) => {
+        if (err) {
+            res.send(err);
+        }
+        res.json(data);
+    });
+});
+
 
 // find workout by range
 app.get("/api/workouts/range", (req, res) => {
@@ -41,21 +53,16 @@ app.post("/api/workouts", (req, res) => {
 
 // add exercise to workout
 app.put("/api/workouts/:id", (req, res) => {
-    db.Workout.update({
-        _id: mongojs.ObjectId(req.params.id)
-    }, {
-        $push: {
-            exercises: req.body
-        }, 
-        $set: {
-            date: Date.now()
-        }
-    }, (err, data) => {
-        if (err) {
-            res.send(err);
-        }
-        res.send(data);
-    });
+    db.Exercise.create(req.body)
+        .then(({ _id }) => {
+            db.Workout.findOneAndUpdate({ _id: mongojs.ObjectId(req.params.id)}, { $push: { exercises: _id } }, { new: true });
+        })
+        .then(data => {
+            res.json(data);
+        })
+        .catch(err => {
+            res.json(err);
+        });
 });
 
 
