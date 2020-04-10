@@ -4,7 +4,8 @@ const mongoose = require("mongoose");
 
 const PORT = process.env.PORT || 3000;
 
-const Workout = require("./workoutModel.js");
+const db = require("./models");
+const seeders = require("./seeders/seed.js");
 
 const app = express();
 
@@ -17,13 +18,9 @@ app.use(express.static("public"));
 
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/custommethods", { useNewUrlParser: true });
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname + "./public/index.html"));
-});
-
-// get all workouts
-app.get("/all", (req, res) => {
-    Workouts.find({}, (err, data) => {
+// find workout by range
+app.get("/api/workouts/range", (req, res) => {
+    db.Workout.find({}, (err, data) => {
         if (err) {
             res.send(err);
         }
@@ -31,9 +28,10 @@ app.get("/all", (req, res) => {
     });
 });
 
-// add workout to list
-app.submit("/", (req, res) => {
-    Workouts.insert(req.body, (err, data) => {
+
+// create workout 
+app.post("/api/workouts", (req, res) => {
+    db.Workout.insert(req.body, (err, data) => {
         if (err) {
             res.send(err);
         }
@@ -41,27 +39,16 @@ app.submit("/", (req, res) => {
     });
 });
 
-// find workout by id
-app.get("/find/:id", (req, res) => {
-    Workouts.findOne({
-        _id: mongojs.ObjectId(req.params.id)
-    }, (err, data) => {
-        if (err) {
-            res.send(err);
-        }
-        res.json(data);
-    });
-});
-
-// modify existing workout list
-app.put("/update/:id", (req, res) => {
-    Workouts.update({
+// add exercise to workout
+app.put("/api/workouts/:id", (req, res) => {
+    db.Workout.update({
         _id: mongojs.ObjectId(req.params.id)
     }, {
+        $push: {
+            exercises: req.body
+        }, 
         $set: {
-            title: req.body.title,
-            description: req.body.discription,
-            modified: Date.now()
+            date: Date.now()
         }
     }, (err, data) => {
         if (err) {
@@ -71,28 +58,7 @@ app.put("/update/:id", (req, res) => {
     });
 });
 
-// clear workout by id
-app.delete("/delete/:id", (req, res) => {
-    Workouts.remove({
-        _id: mongojs.ObjectId(req.params.id)
-    }, (err, data) => {
-        if (err) {
-            res.send(err);
-        }
-        res.send(data);
-    });
-});
-
-// clear all workouts
-app.delete("/clear", (req, res) => {
-    Workouts.remove({}, (err, data) => {
-        if (err) {
-            res.send(err);
-        }
-        res.send(data);
-    });
-});
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}`);
-});s
+});
