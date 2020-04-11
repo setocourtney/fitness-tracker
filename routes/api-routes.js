@@ -28,7 +28,7 @@ module.exports = function(app) {
 
     // create workout 
     app.post("/api/workouts", (req, res) => {
-        db.Workout.create(req.body, (err, data) => {
+        db.Workout.create({}, (err, data) => {
             if (err) {
                 res.send(err);
             }
