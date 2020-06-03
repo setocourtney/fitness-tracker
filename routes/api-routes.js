@@ -28,7 +28,6 @@ module.exports = function(app) {
             workouts.forEach(workout => {
                 workout.calculateDuration();
                 workout.lastUpdatedDate();
-                console.log(workout);
             })
             res.json(workouts);
         })
@@ -63,6 +62,16 @@ module.exports = function(app) {
         .then((workout) => {
             workout.calculateDuration();
             workout.lastUpdatedDate();
+            res.send(workout);
+        })
+        .catch((err) => {
+            res.send(err);
+        });
+    });
+    // clear all workouts
+    app.delete("/api/workouts", (req, res) => {
+        db.Workout.deleteMany({})
+        .then((data) => {
             res.send(data);
         })
         .catch((err) => {

@@ -1,3 +1,5 @@
+const clearButton = document.querySelector("#clear-button");
+
 // get all workout data from back-end
 
 fetch("/api/workouts/range")
@@ -194,7 +196,6 @@ function duration(data) {
       durations.push(exercise.duration);
     });
   });
-  console.log(durations);
   return durations;
 }
 
@@ -221,3 +222,13 @@ function workoutNames(data) {
   
   return workouts;
 }
+
+clearButton.addEventListener("click", function() {
+  fetch("/api/workouts", {
+    method: "DELETE"
+  })
+  .then(() => {
+    populateChart([]);
+  });
+
+})
